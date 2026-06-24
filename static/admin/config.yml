@@ -2,7 +2,8 @@ backend:
   name: github
   repo: asam89/alexandersam.me
   branch: main
-  base_url: https://decap-oauth.netlify.app
+  auth_type: pkce
+  app_id: Ov23liBm15lfDuZ8X4nc
 
 media_folder: static/images
 public_folder: /images
