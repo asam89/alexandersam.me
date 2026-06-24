@@ -48,6 +48,8 @@ export default {
   workedAt: {
     enabled: true,
     meta: [
+      { name: 'University of Toronto', src: '/images/uoft-logo.png', url: 'https://utoronto.ca' },
+      { name: 'Royal Bank of Canada', src: '/images/rbc-logo.png', url: 'https://rbc.com' },
       { name: 'Ignyte Consulting', src: '/images/ignyte-logo.png', url: 'https://ignyteconsulting.com' },
     ]
   },

@@ -1,9 +1,12 @@
 <template>
   <div>
     <HeroSection/>
+    <SkillsSection/>
+    <ExperienceSection/>
     <GithubCalendar v-if="$config.social.github"/>
     <Recommendations v-if="$config.recommendations.enabled"/>
     <LazyRecentBlog v-if="$config.blog.enabled && posts" :posts="posts"/>
+    <SocialFeed/>
   </div>
 </template>
 
