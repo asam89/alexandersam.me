@@ -3,7 +3,7 @@ backend:
   repo: asam89/alexandersam.me
   branch: main
   auth_type: pkce
-  app_id: Ov23liBm15lfDuZ8X4nc
+  app_id: Iv23ligYDaH80H4Hp9gM
 
 media_folder: static/images
 public_folder: /images
