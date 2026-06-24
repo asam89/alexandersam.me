@@ -2,7 +2,13 @@
 id: 1
 title: Hello World — Welcome to My New Site
 description: Introducing my rebranded personal site. A place to share what I'm building, thinking about, and learning along the way.
+category: personal
 tags: ['personal', 'intro']
+author:
+  name: Alex Sam
+  image: /images/alex-avatar.png
+  twitter: ''
+readingTime: 2 min read
 createdAt: 2026-06-24
 ---
 
