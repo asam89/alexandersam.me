@@ -75,19 +75,19 @@ export default {
         signOut: 'sign out'
       },
       hero: {
-        iBlogTech: 'i build things',
-        haveALook: 'see my projects',
-        friendlyNeighborhood: 'software engineer &',
-        description: 'i am a software engineer and founder of ignyte consulting. i build AI-powered platforms, sports management tools, and automation bots. always shipping, always learning.',
-        words: ['consultant', 'builder', 'engineer', 'architect', 'creator'],
+        iBlogTech: 'cloud · infrastructure · devops',
+        haveALook: 'view projects',
+        friendlyNeighborhood: 'technical project manager &',
+        description: 'pmp-certified technical project manager building modern cloud solutions, AI-powered automation, and community impact. founder of ignyte consulting & faezsports.',
+        words: ['cloud architect', 'devops lead', 'ai builder', 'pm operator', 'msp founder'],
       },
       githubCalendar: {
         header: 'contributions',
         subtext: 'github calendar heatmap'
       },
       blog: {
-        header: 'blog',
-        subtext: 'thoughts on building software, AI, and shipping products'
+        header: 'writing',
+        subtext: 'publications on AI, project management, and building tools'
       },
       recentBlog: {
         header: 'recent posts',
@@ -99,7 +99,7 @@ export default {
       },
       projects: {
         header: 'projects',
-        subtext: 'things i\'ve built — platforms, bots, and tools that solve real problems'
+        subtext: 'cloud migrations, AI bots, and community platforms'
       },
       recommendations: {
         header: 'recommendations',
