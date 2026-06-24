@@ -1,11 +1,11 @@
-name: Build Static Site
+name: Deploy to Hostinger
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,8 +20,12 @@ jobs:
       - name: Generate static site
         run: yarn generate
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Deploy to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          name: dist
-          path: dist/
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          local-dir: ./dist/
+          server-dir: /public_html/
+          timeout: 60000
