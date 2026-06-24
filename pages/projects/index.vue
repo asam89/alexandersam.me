@@ -18,8 +18,8 @@
       </nav>
     </div>
 
-    <div data-aos="zoom-in" class="mt-5 gap-4 mx-4 grid max-w-none lg:grid-cols-3">
-      <ProjectCard class="hover:-rotate-12" v-for="project in projectsByTechs" :key="project.slug" :project="project" />
+    <div data-aos="zoom-in" class="mt-5 gap-4 mx-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-none">
+      <ProjectCard v-for="project in projectsByTechs" :key="project.slug" :project="project" />
     </div>
   </div>
 </template>
@@ -37,18 +37,29 @@ export default {
     techs() {
       let techs = []
       this.projects.forEach((project) => {
-        project.tech.split(' ').forEach((tech) => {
-          if (tech.trim() !== "") {
-            techs.push(tech.trim())
-          }
-        })
+        const techField = project.tech
+        if (Array.isArray(techField)) {
+          techField.forEach((t) => {
+            if (t.trim() !== '') techs.push(t.trim())
+          })
+        } else if (typeof techField === 'string') {
+          techField.split(' ').forEach((tech) => {
+            if (tech.trim() !== '') techs.push(tech.trim())
+          })
+        }
       })
       return [ALL, ...new Set(techs)]
     },
     projectsByTechs() {
       if (this.currentTech === ALL)
         return this.projects
-      return this.projects.filter(project => project.tech.includes(this.currentTech))
+      return this.projects.filter(project => {
+        const techField = project.tech
+        if (Array.isArray(techField)) {
+          return techField.includes(this.currentTech)
+        }
+        return (techField || '').includes(this.currentTech)
+      })
     }
   },
   data() {
