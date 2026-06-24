@@ -3,6 +3,7 @@
     <TheNavBar/>
     <Nuxt />
     <TheFooter />
+    <FloatingContact />
   </div>
 </template>
 

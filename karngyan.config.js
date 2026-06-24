@@ -80,7 +80,7 @@ export default {
         iBlogTech: 'cloud · infrastructure · devops',
         haveALook: 'view projects',
         friendlyNeighborhood: 'technical project manager &',
-        description: 'pmp-certified technical project manager building modern cloud solutions, AI-powered automation, and community impact. founder of ignyte consulting & faezsports.',
+        description: 'builder & dreamer. pmp-certified technical project manager building modern cloud solutions, AI-powered automation, and community impact. founder of ignyte consulting & faezsports.',
         words: ['cloud architect', 'devops lead', 'ai builder', 'pm operator', 'msp founder'],
       },
       githubCalendar: {
