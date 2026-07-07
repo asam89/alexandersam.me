@@ -23,7 +23,7 @@ export default {
     github: 'asam89',
     linkedin: 'alexandersam',
     facebook: '',
-    twitter: '',
+    twitter: 'ignytechnology',
     instagram: '',
     codestats: ''
   },
