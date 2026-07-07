@@ -38,37 +38,28 @@
           </div>
         </div>
 
-        <!-- X / Twitter Card -->
-        <div class="border border-gray-700 rounded-lg overflow-hidden">
-          <div class="bg-gradient-to-r from-gray-900 to-gray-800 h-20 flex items-center justify-center">
-            <svg class="h-8 w-8 text-white opacity-30" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-          </div>
-          <div class="p-6 -mt-10">
-            <div class="flex items-end space-x-4 mb-4">
-              <div class="w-16 h-16 rounded-full bg-gray-800 border-2 border-gray-700 flex items-center justify-center flex-shrink-0">
-                <span class="text-2xl font-bold text-white">AS</span>
-              </div>
-              <div class="pb-1">
-                <h3 class="text-white font-bold text-lg">Alexander Sam</h3>
-                <p class="text-gray-400 text-sm" v-if="$config.social.twitter">@{{ $config.social.twitter }}</p>
-                <p class="text-gray-500 text-sm italic" v-else>Coming soon</p>
-              </div>
-            </div>
-            <p class="text-gray-400 text-sm mb-4">Thoughts on AI, automation, cloud infrastructure, and building products in public. Real-time updates on what I'm shipping.</p>
-            <div class="flex flex-wrap gap-2 mb-4">
-              <span class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">#BuildInPublic</span>
-              <span class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">#AI</span>
-              <span class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">#CloudOps</span>
-              <span class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">#TPM</span>
-            </div>
-            <a :href="twitterUrl" target="_blank" rel="noreferrer"
-               class="inline-flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+        <!-- X / Twitter Embedded Timeline -->
+        <div class="border border-gray-700 rounded-lg overflow-hidden" v-if="$config.social.twitter">
+          <div class="p-4 bg-gray-800 border-b border-gray-700 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
               </svg>
-              <span>Follow on X</span>
+              <span class="text-white font-semibold">@{{ $config.social.twitter }}</span>
+            </div>
+            <a :href="twitterUrl" target="_blank" rel="noreferrer"
+               class="text-xs bg-white text-black px-3 py-1 rounded-full font-bold hover:bg-gray-200 transition-colors">
+              Follow
+            </a>
+          </div>
+          <div class="twitter-timeline-container" ref="twitterContainer">
+            <a class="twitter-timeline"
+               :href="twitterUrl"
+               data-theme="dark"
+               data-chrome="noheader nofooter noborders transparent"
+               data-height="400"
+               data-width="100%">
+              Loading tweets...
             </a>
           </div>
         </div>
@@ -85,6 +76,31 @@ export default {
         ? `https://x.com/${this.$config.social.twitter}`
         : 'https://x.com'
     }
+  },
+  mounted() {
+    if (this.$config.social.twitter) {
+      this.loadTwitterWidget()
+    }
+  },
+  methods: {
+    loadTwitterWidget() {
+      if (window.twttr) {
+        window.twttr.widgets.load(this.$refs.twitterContainer)
+        return
+      }
+      const script = document.createElement('script')
+      script.src = 'https://platform.twitter.com/widgets.js'
+      script.async = true
+      script.charset = 'utf-8'
+      document.head.appendChild(script)
+    }
   }
 }
 </script>
+
+<style scoped>
+.twitter-timeline-container {
+  background: #15202b;
+  min-height: 400px;
+}
+</style>
