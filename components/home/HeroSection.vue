@@ -27,7 +27,7 @@
                   <div class="flex flex-wrap space-x-1 items-start items-center space-x-4 md:space-x-10">
                     <div v-for="(firm, index) in $config.workedAt.meta" :key="index">
                       <a :href="firm.url" target="_blank" rel="noreferrer" class="flex items-center justify-center">
-                        <img :src="firm.src" class="h-8 rounded-sm sm:h-9" :alt="firm.name"/>
+                        <img :src="firm.src" class="h-10 rounded-sm sm:h-12" :alt="firm.name"/>
                       </a>
                     </div>
                   </div>
