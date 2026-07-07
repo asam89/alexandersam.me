@@ -50,7 +50,9 @@ export default {
     meta: [
       { name: 'University of Toronto', src: '/images/uoft-logo.png', url: 'https://utoronto.ca' },
       { name: 'Royal Bank of Canada', src: '/images/rbc-logo.png', url: 'https://rbc.com' },
-      { name: 'Ignyte Consulting', src: '/images/ignyte-logo.png', url: 'https://ignyteconsulting.com' },
+      { name: 'BMO Financial Group', src: '/images/bmo-logo.png', url: 'https://bmo.com' },
+      { name: 'Publicis Groupe', src: '/images/publicis-logo.png', url: 'https://publicisgroupe.com' },
+      { name: 'Syntax', src: '/images/syntax-logo.png', url: 'https://syntax.com' },
     ]
   },
   recommendations: {
