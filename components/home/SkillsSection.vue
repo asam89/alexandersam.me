@@ -50,273 +50,222 @@ export default {
         {
           title: 'Cloud & Infrastructure',
           items: [
-            { name: 'Microsoft Azure', highlight: false, project: 'Enterprise Cloud Migration', file: 'main.bicep', code: `resource appPlan 'Microsoft.Web/serverfarms@2023-01-01' = {
-  name: 'asp-prod-canadacentral'
-  location: 'canadacentral'
-  sku: { name: 'P1v3', tier: 'PremiumV3', capacity: 3 }
-  properties: { zoneRedundant: true }
+            { name: 'Microsoft Azure', highlight: false, project: 'RBC · Next-Gen SIEM ($52M)', file: 'sentinel-rule.kql', code: `// Microsoft Sentinel analytics rule — Splunk + Sentinel migration
+// 20 TB/day ingest · 450K EPS coordinated across 15 data centers
+SigninLogs
+| where AppDisplayName has "proxy"
+| summarize failures = countif(ResultType != 0)
+    by IPAddress, bin(TimeGenerated, 5m)
+| where failures > 25   // flag anomalous proxy auth` },
+            { name: 'AWS', highlight: false, project: 'AWS Solutions Engineer (cert)', file: 'cloudwatch.tf', code: `# Amazon Solutions Engineer certified (Jan 2021)
+resource "aws_cloudwatch_metric_alarm" "siem_eps" {
+  alarm_name          = "siem-ingest-eps"
+  comparison_operator = "GreaterThanThreshold"
+  metric_name         = "EventsPerSecond"
+  threshold           = 450000
+  period              = 300
 }` },
-            { name: 'AWS', highlight: false, project: 'FaezSports Leagues', file: 'ecs-service.tf', code: `resource "aws_ecs_service" "leagues_api" {
-  name            = "leagues-api"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.api.arn
-  desired_count   = 2
-  launch_type     = "FARGATE"
-
-  load_balancer {
-    target_group_arn = aws_lb_target_group.api.arn
-    container_name   = "api"
-    container_port   = 3000
-  }
-}` },
-            { name: 'Oracle Cloud (OCI)', highlight: false, project: 'SAP S/4HANA Migration', file: 'compute.tf', code: `resource "oci_core_instance" "sap_app" {
-  availability_domain = var.ad
-  compartment_id      = var.compartment_ocid
-  shape               = "VM.Standard.E4.Flex"
-  shape_config {
-    ocpus         = 8
-    memory_in_gbs = 128
-  }
-  display_name = "sap-app-tier-01"
-}` },
-            { name: 'Kubernetes', highlight: false, project: 'Ignyte MSP Platform', file: 'deployment.yaml', code: `apiVersion: apps/v1
+            { name: 'Oracle Cloud (OCI)', highlight: false, project: 'OCI · Automation Platform', file: 'provision.sh', code: `# Ampere A1 (ARM) VM on OCI free tier — $0/month
+oci compute instance launch \\
+  --shape VM.Standard.A1.Flex \\
+  --shape-config '{"ocpus":4,"memoryInGBs":24}'
+# Toronto region capacity constrained → Montreal fallback
+tailscale up --ssh --advertise-tags=tag:ai-node` },
+            { name: 'Kubernetes', highlight: false, project: 'Publicis · DevOps pipelines', file: 'deployment.yaml', code: `# Kubernetes cluster management at scale (Publicis Groupe)
+apiVersion: apps/v1
 kind: Deployment
-metadata:
-  name: tenant-api
+metadata: { name: build-agent }
 spec:
-  replicas: 3
-  strategy:
-    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  replicas: 6
   template:
     spec:
       containers:
-        - name: api
-          image: ignyte/tenant-api:1.4.2
-          resources:
-            requests: { cpu: 250m, memory: 256Mi }` },
-            { name: 'Docker', highlight: false, project: 'MyCareer Builder', file: 'Dockerfile', code: `FROM python:3.12-slim AS base
+        - name: agent
+          image: registry/ci-agent:stable` },
+            { name: 'Docker', highlight: false, project: 'OCI · OpenClaw deploy', file: 'Dockerfile', code: `# OpenClaw: diagnosed Docker binding issues on ARM,
+# pivoted to native npm — knowing when containers help vs hurt
+FROM node:20-slim
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-CMD ["uvicorn", "dashboard.main:app", "--host", "0.0.0.0", "--port", "8000"]` },
-            { name: 'Terraform', highlight: false, project: 'Multi-cloud IaC', file: 'main.tf', code: `module "network" {
-  source  = "./modules/vpc"
-  cidr    = "10.20.0.0/16"
-  azs     = ["ca-central-1a", "ca-central-1b"]
-  tags = {
-    Environment = "production"
-    ManagedBy   = "terraform"
-  }
-}` },
+COPY package*.json ./
+RUN npm ci --omit=dev
+CMD ["node", "openclaw.js"]` },
+            { name: 'Terraform', highlight: false, project: 'Publicis · Infrastructure-as-Code', file: 'main.tf', code: `# Terraform + Ansible IaC for Jenkins/Docker/K8s pipelines
+module "k8s_cluster" {
+  source       = "./modules/gke"
+  node_count   = 6
+  machine_type = "n2-standard-4"
+}
+# config management handed off to Ansible playbooks` },
           ]
         },
         {
           title: 'Enterprise & ERP',
           items: [
-            { name: 'SAP S/4HANA', highlight: false, project: 'ERP Cloud Migration', file: 'extract_gl.abap', code: `SELECT belnr, budat, dmbtr, hkont
-  FROM bkpf AS h
-  INNER JOIN bseg AS i ON h~belnr = i~belnr
-  INTO TABLE @DATA(lt_gl)
-  WHERE h~bukrs = @lv_company
-    AND h~gjahr = @lv_fiscal_year.` },
-            { name: 'JD Edwards', highlight: false, project: 'Finance Systems Integration', file: 'f0411_export.sql', code: `SELECT RPAN8 AS supplier, RPDGJ AS gl_date,
-       RPAG AS gross_amount, RPCRRC AS currency
-FROM PRODDTA.F0411
-WHERE RPPST = 'A'   -- approved vouchers
-  AND RPDGJ BETWEEN :start_jd AND :end_jd;` },
-            { name: 'Active Directory', highlight: false, project: 'Ignyte MSP Onboarding', file: 'provision-user.ps1', code: `New-ADUser -Name "$First $Last" \`
-  -SamAccountName $sam \`
-  -UserPrincipalName "$sam@ignyte.local" \`
-  -Path "OU=Staff,DC=ignyte,DC=local" \`
-  -AccountPassword $securePw -Enabled $true
-Add-ADGroupMember -Identity "M365-E3" -Members $sam` },
-            { name: 'M365', highlight: false, project: 'Tenant Automation', file: 'assign-license.ps1', code: `Connect-MgGraph -Scopes "User.ReadWrite.All"
-Set-MgUserLicense -UserId $upn \`
-  -AddLicenses @{ SkuId = $e3SkuId } \`
-  -RemoveLicenses @()` },
-            { name: 'IAM', highlight: false, project: 'Zero Trust Rollout', file: 'ca-policy.json', code: `{
-  "displayName": "Require MFA for admins",
-  "conditions": {
-    "users": { "includeRoles": ["Global Administrator"] },
-    "applications": { "includeApplications": ["All"] }
-  },
-  "grantControls": {
-    "operator": "OR",
-    "builtInControls": ["mfa"]
+            { name: 'SAP S/4HANA', highlight: false, project: 'Syntax · Global IT (SAP MSP)', file: 'team.md', code: `# Syntax — SAP/Oracle ERP managed-services provider
+# Led global IT team: 25 employees, 4 direct reports
+- Managed infra & availability supporting ERP clients
+- Cross-timezone escalations, patching, uptime
+# NOTE: brag-doc lacks SAP build specifics — confirm details` },
+            { name: 'JD Edwards', highlight: false, project: 'Syntax · ERP Managed Services', file: 'note.md', code: `# ERP operations @ Syntax (SAP/Oracle/JDE MSP)
+# 25-person global team · 4 direct reports
+- Service delivery across enterprise ERP estates
+# NOTE: brag-doc has no JD Edwards specifics — confirm details` },
+            { name: 'Active Directory', highlight: false, project: 'Ignyte · Endpoint Management', file: 'laps.ps1', code: `# Windows LAPS break-glass + local admin enforcement (Intune)
+# 120 endpoints across 19 active client environments
+Set-LapsADPasswordExpirationTime -Identity $device
+New-ADGroup -Name "M365-E3-Users" -GroupScope Global
+Add-ADGroupMember -Identity "M365-E3-Users" -Members $sam` },
+            { name: 'M365', highlight: false, project: 'Ignyte · Intune / M365', file: 'intune-compliance.ps1', code: `# Device compliance via Settings Catalog (ADMX for Pro)
+New-MgDeviceManagementDeviceCompliancePolicy -BodyParameter @{
+  displayName    = "Win11 Baseline"
+  "@odata.type"  = "#microsoft.graph.windows10CompliancePolicy"
+  passwordRequired = $true
+  bitLockerEnabled = $true
+}` },
+            { name: 'IAM', highlight: false, project: 'RBC · Internet Controls Re-Alignment', file: 'iam-review.ps1', code: `# Global proxy auth + IAM review across 3,000+ web apps
+Get-WebApps | ForEach-Object {
+  if (-not $_.AuthConfigured) {
+    Redirect-ToSSO $_.Url   # mitigate unauthorized access
+    Write-Attestation $_.AppId
   }
 }` },
-            { name: 'Zero Trust', highlight: false, project: 'Security Hardening', file: 'conditional-access.ps1', code: `# Block legacy auth, enforce compliant devices
-New-MgIdentityConditionalAccessPolicy -BodyParameter @{
-  DisplayName = "Block Legacy Auth"
-  State       = "enabled"
-  Conditions  = @{ ClientAppTypes = @("exchangeActiveSync","other") }
-  GrantControls = @{ Operator = "OR"; BuiltInControls = @("block") }
-}` },
+            { name: 'Zero Trust', highlight: false, project: 'RBC · Firepower IPS + PAM', file: 'least-privilege.md', code: `# Cisco Firepower IPS refresh — 79 appliances
+# Partnered with IAM team on PAM / CyberArk rollout
+- CyberArk vaulting for privileged credentials
+- Least-privilege enforced across environments
+- IPS across 15 data centers` },
           ]
         },
         {
           title: 'DevOps & Automation',
           items: [
-            { name: 'CI/CD', highlight: false, project: 'alexandersam.me', file: 'deploy.yml', code: `- name: Build & deploy
-  run: yarn generate
-- name: FTP upload to Hostinger
-  uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-  with:
-    server: \${{ secrets.FTP_SERVER }}
-    local-dir: ./dist/
-    server-dir: /domains/alexandersam.me/public_html/` },
-            { name: 'GitHub Actions', highlight: false, project: 'FaezSports CI', file: 'ci.yml', code: `on:
-  push: { branches: [main] }
+            { name: 'CI/CD', highlight: false, project: 'BMO · GitHub Enterprise ($5M)', file: 'pipeline.yml', code: `# Standardized CI/CD across LOBs — 20k users, 100k+ repos
+stages: [build, scan, deploy]
+scan:
+  script:
+    - sonar-scanner          # SonarQube quality gate
+    - artifactory publish    # Artifactory
+    - cyberark get-secret    # CyberArk-managed creds` },
+            { name: 'GitHub Actions', highlight: false, project: 'BMO · Bitbucket → GHE', file: 'ci.yml', code: `# Migrated 100k+ repos from Bitbucket to GitHub Enterprise
+on: { push: { branches: [main] } }
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: [self-hosted]
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci && npx prisma generate
-      - run: npm run test -- --coverage` },
-            { name: 'Python', highlight: false, project: 'Contrarian Finance Bot', file: 'signals.py', code: `def contrarian_signal(rsi: float, sentiment: float) -> str:
-    """Fade the crowd when fear/greed hits extremes."""
-    if rsi < 30 and sentiment < -0.5:
-        return "STRONG_BUY"
-    if rsi > 70 and sentiment > 0.5:
-        return "TAKE_PROFIT"
-    return "HOLD"` },
-            { name: 'Node.js', highlight: false, project: 'FaezSports Leagues', file: 'standings.ts', code: `export function computeStandings(games: Game[]): Standing[] {
-  const table = new Map<string, Standing>()
-  for (const g of games) {
-    const home = table.get(g.homeId) ?? blank(g.homeId)
-    home.points += g.homeScore > g.awayScore ? 3 : g.tie ? 1 : 0
-    table.set(g.homeId, home)
-  }
-  return [...table.values()].sort((a, b) => b.points - a.points)
+      - run: mvn verify sonar:sonar` },
+            { name: 'Python', highlight: false, project: 'FaezSports · IG automation', file: 'instagram_sync.py', code: `# OCI cron → Instagram Graph API → FTP → Hostinger
+posts = fetch_instagram_media(refresh_token())   # 60-day token mgmt
+for p in posts:
+    render_card(p)
+ftp_upload("/public_html/feed/", built_pages)` },
+            { name: 'Node.js', highlight: false, project: 'FaezSports Platform', file: 'standings.ts', code: `// Next.js + TypeScript + Prisma + Supabase
+export async function standings(leagueId: string) {
+  const games = await prisma.game.findMany({ where: { leagueId } })
+  return computeTable(games).sort((a, b) => b.pts - a.pts)
 }` },
-            { name: 'Bash', highlight: false, project: 'Backup Automation', file: 'backup.sh', code: `#!/usr/bin/env bash
+            { name: 'Bash', highlight: false, project: 'FaezSports · OCI cron', file: 'refresh_token.sh', code: `#!/usr/bin/env bash
+# Instagram Graph API token — 60-day lifecycle mgmt on OCI
 set -euo pipefail
-TS=$(date +%Y%m%d-%H%M)
-pg_dump "$DATABASE_URL" | gzip > "/backups/db-$TS.sql.gz"
-find /backups -name '*.sql.gz' -mtime +14 -delete
-echo "Backup complete: db-$TS.sql.gz"` },
-            { name: 'Tailscale', highlight: false, project: 'Mac Mini AI Assistant', file: 'setup.sh', code: `# Expose local Ollama over private tailnet only
+NEW=$(curl -s "$IG_REFRESH_URL" | jq -r .access_token)
+echo "$NEW" > /opt/faez/ig_token` },
+            { name: 'Tailscale', highlight: false, project: 'OCI · Secure Mesh', file: 'tailscale.sh', code: `# Private access to OCI Ampere box — no public ports open
 tailscale up --ssh --advertise-tags=tag:ai-node
-tailscale serve https / http://localhost:11434
-# Now reachable at https://macmini.tail-scale.ts.net` },
+tailscale serve https / http://localhost:3000
+# secure remote access to automation workloads` },
           ]
         },
         {
           title: 'AI & LLM',
           items: [
-            { name: 'Claude API', highlight: false, project: 'MyCareer Builder', file: 'tailor.py', code: `resp = client.messages.create(
-    model="claude-sonnet-4",
-    max_tokens=2000,
-    system="You are an expert resume writer.",
-    messages=[{
-        "role": "user",
-        "content": f"Tailor this resume to the JD.\\nJD:\\n{jd}\\nResume:\\n{resume}"
-    }],
-)
-tailored = resp.content[0].text` },
-            { name: 'Ollama', highlight: false, project: 'Mac Mini AI Assistant', file: 'local_llm.py', code: `import ollama
+            { name: 'Claude API', highlight: false, project: 'FaezSports · NL league config', file: 'league_config.ts', code: `// Natural-language → structured league setup (Claude API)
+// Differentiator: most youth-sports tools have no AI
+const cfg = await claude.messages.create({
+  model: "claude-sonnet-4",
+  messages: [{ role: "user", content: \`Build a league: \${prompt}\` }],
+})
+return parseLeague(cfg.content[0].text)` },
+            { name: 'Ollama', highlight: false, project: 'OCI · self-hosted models', file: 'local_llm.py', code: `# Self-hosted model host on OCI Ampere box
+# NOTE: brag-doc cites Claude/OpenClaw, not Ollama — confirm
 res = ollama.chat(
     model="llama3.1:8b",
     messages=[{"role": "user", "content": prompt}],
-    options={"temperature": 0.2},
-)
-print(res["message"]["content"])` },
-            { name: 'Gemini', highlight: false, project: 'Mark-It', file: 'generate_copy.py', code: `model = genai.GenerativeModel("gemini-1.5-pro")
-out = model.generate_content(
-    f"Write 3 ad variations for: {product}. Tone: {tone}",
-    generation_config={"temperature": 0.9},
-)
-variations = out.text.split("\\n\\n")` },
-            { name: 'Telegram Bots', highlight: false, project: 'Contrarian Finance Bot', file: 'bot.py', code: `@dp.message(Command("signal"))
-async def send_signal(message: types.Message):
-    ticker = message.text.split()[1].upper()
-    sig = contrarian_signal(*fetch_metrics(ticker))
-    await message.answer(f"{ticker}: *{sig}*", parse_mode="Markdown")` },
-            { name: 'Intent Classification', highlight: false, project: 'Support Router', file: 'router.py', code: `INTENTS = ["billing", "technical", "sales", "other"]
-def classify(text: str) -> str:
-    resp = client.messages.create(
-        model="claude-haiku-4",
-        max_tokens=10,
-        messages=[{"role": "user",
-                   "content": f"Classify into {INTENTS}: {text}"}],
-    )
-    return resp.content[0].text.strip().lower()` },
+)` },
+            { name: 'Gemini', highlight: false, project: 'AI experiments', file: 'generate.py', code: `# NOTE: not documented in brag-doc — placeholder, confirm usage
+model = genai.GenerativeModel("gemini-1.5-pro")
+out = model.generate_content(prompt)
+print(out.text)` },
+            { name: 'Telegram Bots', highlight: false, project: 'OCI · OpenClaw', file: 'bot.py', code: `# OpenClaw automation + Anthropic API exposed via Telegram
+@dp.message()
+async def handle(msg):
+    reply = await openclaw.run(msg.text)   # Anthropic-backed
+    await msg.answer(reply)` },
+            { name: 'Intent Classification', highlight: false, project: 'OpenClaw · command routing', file: 'router.py', code: `# Route Telegram commands to OpenClaw skills
+# NOTE: brag-doc has no explicit intent-classification project
+intent = classify(msg.text, labels=["deploy", "status", "query"])
+dispatch(intent, msg)` },
           ]
         },
         {
           title: 'Data & Analytics',
           items: [
-            { name: 'SQL Server', highlight: false, project: 'ERP Reporting', file: 'monthly_gl.sql', code: `WITH monthly AS (
-  SELECT account, DATEFROMPARTS(YEAR(posted), MONTH(posted), 1) AS mo,
-         SUM(amount) AS total
-  FROM ledger GROUP BY account, YEAR(posted), MONTH(posted)
-)
-SELECT * FROM monthly
-WHERE mo >= DATEADD(month, -12, GETDATE())
-ORDER BY account, mo;` },
-            { name: 'PostgreSQL', highlight: false, project: 'FaezSports Platform', file: 'schema.prisma', code: `model Registration {
-  id        String   @id @default(cuid())
+            { name: 'SQL Server', highlight: false, project: 'Family Service TO · PassportOne', file: 'invoice_batch.sql', code: `-- Dynamics CRM + Great Plains backend
+-- $2.2M/day automated provincial invoice processing
+INSERT INTO gp.PM_Transactions (vendor, amount, batch)
+SELECT vendor_id, amount, @batch
+FROM staging.provincial_invoices
+WHERE validated = 1;   -- SLA-compliant nightly run` },
+            { name: 'PostgreSQL', highlight: false, project: 'FaezSports · Supabase', file: 'schema.prisma', code: `// Supabase (PostgreSQL) + Prisma — Stripe registration payments
+model Registration {
+  id        String @id @default(cuid())
   leagueId  String
-  playerId  String
-  paidCents Int      @default(0)
-  createdAt DateTime @default(now())
-
-  @@unique([leagueId, playerId])
+  paidCents Int    @default(0)   // Stripe cents
   @@index([leagueId])
 }` },
-            { name: 'SQLite', highlight: false, project: 'MyCareer Builder', file: 'db.py', code: `conn.execute("""
-  CREATE TABLE IF NOT EXISTS applications (
-    id INTEGER PRIMARY KEY,
-    company TEXT NOT NULL,
-    fit_score REAL,
-    status TEXT DEFAULT 'draft',
-    applied_at TEXT
-  )
-""")` },
-            { name: 'ETL', highlight: false, project: 'Data Migration Pipeline', file: 'pipeline.py', code: `def run_etl(src, dst):
-    rows = extract(src)                       # pull from source
-    clean = [transform(r) for r in rows if valid(r)]
-    load(dst, clean, batch_size=500)          # bulk upsert
-    log.info("Loaded %d / %d rows", len(clean), len(rows))` },
-            { name: 'Event-Driven Architecture', highlight: false, project: 'FaezSports Leagues', file: 'events.ts', code: `emitter.on("payment.succeeded", async (evt) => {
-  await confirmRegistration(evt.registrationId)
-  await sendReceipt(evt.email, evt.amount)
-  await notifyAdmin(\`New paid registration: \${evt.playerName}\`)
+            { name: 'SQLite', highlight: false, project: 'Ignyte · endpoint inventory', file: 'inventory.py', code: `# Lightweight local store for client endpoint inventory
+# 120 endpoints across 19 active clients
+db.execute("""CREATE TABLE IF NOT EXISTS endpoints (
+  id INTEGER PRIMARY KEY, client TEXT,
+  compliant INT, last_seen TEXT)""")` },
+            { name: 'ETL', highlight: false, project: 'FaezSports · IG pipeline', file: 'pipeline.py', code: `# Extract (Graph API) → Transform (render) → Load (FTP)
+raw   = extract_instagram()
+pages = [transform(p) for p in raw]
+load_ftp(pages)   # → Hostinger public_html` },
+            { name: 'Event-Driven Architecture', highlight: false, project: 'FaezSports · Stripe webhooks', file: 'events.ts', code: `// Stripe checkout event → confirm registration
+stripe.on("checkout.session.completed", async (e) => {
+  await confirmRegistration(e.data.object.metadata.regId)
+  await emailReceipt(e.data.object.customer_email)
 })` },
           ]
         },
         {
           title: 'Project Management',
           items: [
-            { name: 'PMP Certified', highlight: true, project: 'Enterprise Cloud Migration', file: 'risk-register.md', code: `## Risk Register — Cloud Migration
-| ID | Risk                     | P | I | Response          |
-|----|--------------------------|---|---|-------------------|
-| R1 | Data loss during cutover | L | H | Parallel run + backup |
-| R2 | Vendor SLA slippage      | M | M | Weekly checkpoints    |
-| R3 | Scope creep              | H | M | Change control board  |` },
-            { name: 'Agile / Scrum', highlight: false, project: 'FaezSports Delivery', file: 'sprint-plan.md', code: `## Sprint 14 — Goal: Live standings
-- [x] Standings calc engine        (8 pts)
-- [x] Real-time box score updates  (5 pts)
-- [ ] Playoff bracket generator    (13 pts)
-Velocity: 26 pts avg | Capacity: 30 pts` },
-            { name: 'Kanban', highlight: false, project: 'Ignyte Ops Board', file: 'board.md', code: `Backlog  →  In Progress (WIP 3)  →  Review  →  Done
+            { name: 'PMP Certified', highlight: true, project: 'RBC · SIEM Migration ($52M)', file: 'program.md', code: `## $52M Next-Gen SIEM program (Splunk + Sentinel)
+- 20 TB/day ingest · 450K EPS coordinated
+- Cross-functional delivery across 15 data centers
+- Agile delivery of enterprise security telemetry
+# PMP certified (Mar 2018)` },
+            { name: 'Agile / Scrum', highlight: false, project: 'U of T · SAFe adoption', file: 'safe.md', code: `## Student Information Systems portfolio (current)
++20% sprint predictability via SAFe implementation
+- Transitioned business units from traditional → agile
+- Structured intake process → better resource allocation
+# CSM certified (May 2022)` },
+            { name: 'Kanban', highlight: false, project: 'Ignyte · service delivery', file: 'board.md', code: `Backlog  →  In Progress (WIP 3)  →  Review  →  Done
 ─────────────────────────────────────────────────
-- Tenant onboarding automation   [In Progress]
-- M365 license audit             [Review]
-- Backup DR test                 [Done]` },
-            { name: 'Jira', highlight: false, project: 'Cross-team Delivery', file: 'jql.txt', code: `project = ERP
+- Intune compliance rollout      [In Progress]
+- JSM portal scoping             [Review]
+- SOW v2 (Isaac Operations)      [Done]` },
+            { name: 'Jira', highlight: false, project: 'BMO · Jira Cloud + Ignyte JSM', file: 'jql.txt', code: `# BMO Jira/Confluence Cloud migration + Ignyte JSM portal
+project = SIS
   AND sprint in openSprints()
-  AND assignee = currentUser()
   AND status != Done
 ORDER BY priority DESC, updated ASC` },
-            { name: 'Confluence', highlight: false, project: 'Runbook Docs', file: 'runbook.md', code: `# Cutover Runbook — Go-Live
-1. Freeze source system writes (T-2h)
-2. Final delta sync + checksum validation
-3. Repoint DNS / connection strings
-4. Smoke test critical paths
-5. Stakeholder sign-off → close change ticket` },
+            { name: 'Confluence', highlight: false, project: 'BMO · Jira/Confluence Cloud', file: 'runbook.md', code: `# SaaS migration w/ minimal downtime
+# Supported Bank of the West acquisition compliance
+1. Export Data Center spaces
+2. Cloud Migration Assistant → validate
+3. Cutover  4. Smoke test  5. Stakeholder sign-off` },
           ]
         },
       ]
