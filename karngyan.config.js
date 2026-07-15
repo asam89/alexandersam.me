@@ -21,7 +21,7 @@ export default {
   },
   social: {
     github: 'asam89',
-    linkedin: 'alexandersam',
+    linkedin: 'alexander-s-306575278',
     facebook: '',
     twitter: 'ignytechnology',
     instagram: '',
