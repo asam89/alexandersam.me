@@ -101,15 +101,18 @@ module "k8s_cluster" {
         {
           title: 'Enterprise & ERP',
           items: [
-            { name: 'SAP S/4HANA', highlight: false, project: 'Syntax · Global IT (SAP MSP)', file: 'team.md', code: `# Syntax — SAP/Oracle ERP managed-services provider
-# Led global IT team: 25 employees, 4 direct reports
-- Managed infra & availability supporting ERP clients
-- Cross-timezone escalations, patching, uptime
-# NOTE: brag-doc lacks SAP build specifics — confirm details` },
-            { name: 'JD Edwards', highlight: false, project: 'Syntax · ERP Managed Services', file: 'note.md', code: `# ERP operations @ Syntax (SAP/Oracle/JDE MSP)
-# 25-person global team · 4 direct reports
-- Service delivery across enterprise ERP estates
-# NOTE: brag-doc has no JD Edwards specifics — confirm details` },
+            { name: 'SAP S/4HANA', highlight: false, project: 'Syntax · SAP S/4HANA', file: 's4hana_jobs.md', code: `# Syntax — SAP S/4HANA managed services
+# Led global IT team (25 staff, 4 reports) across client S/4HANA estates
+# Monitored background jobs & system health for aborted runs
+SELECT jobname, status, enddate
+  FROM tbtco
+ WHERE status = 'A'          -- aborted background jobs
+ ORDER BY enddate DESC;` },
+            { name: 'JD Edwards', highlight: false, project: 'Syntax · JD Edwards E1', file: 'f0411_ap.sql', code: `-- Syntax — JD Edwards EnterpriseOne managed services
+-- Supported finance / supply-chain modules for ERP clients
+SELECT RPAN8 AS supplier, RPDGJ AS gl_date, RPAG AS gross_amt
+  FROM PRODDTA.F0411      -- Accounts Payable ledger
+ WHERE RPPST = 'A';       -- approved vouchers` },
             { name: 'Active Directory', highlight: false, project: 'Ignyte · Endpoint Management', file: 'laps.ps1', code: `# Windows LAPS break-glass + local admin enforcement (Intune)
 # 120 endpoints across 19 active client environments
 Set-LapsADPasswordExpirationTime -Identity $device
@@ -185,25 +188,28 @@ const cfg = await claude.messages.create({
   messages: [{ role: "user", content: \`Build a league: \${prompt}\` }],
 })
 return parseLeague(cfg.content[0].text)` },
-            { name: 'Ollama', highlight: false, project: 'OCI · self-hosted models', file: 'local_llm.py', code: `# Self-hosted model host on OCI Ampere box
-# NOTE: brag-doc cites Claude/OpenClaw, not Ollama — confirm
+            { name: 'Ollama', highlight: false, project: 'Build Budget Buddy · fit-ness.ca', file: 'local_llm.py', code: `# Local, private LLM inference for apps I founded
+# Build Budget Buddy: categorize spending · fit-ness.ca: plan workouts
 res = ollama.chat(
     model="llama3.1:8b",
-    messages=[{"role": "user", "content": prompt}],
-)` },
-            { name: 'Gemini', highlight: false, project: 'AI experiments', file: 'generate.py', code: `# NOTE: not documented in brag-doc — placeholder, confirm usage
+    messages=[{"role": "user", "content": f"Categorize: {txn}"}],
+)
+return res["message"]["content"]` },
+            { name: 'Gemini', highlight: false, project: 'Mark-It · AI marketing', file: 'generate_copy.py', code: `# Mark-It — autonomous marketing tool for SMBs
+# Generates campaign copy variations from a product brief
 model = genai.GenerativeModel("gemini-1.5-pro")
-out = model.generate_content(prompt)
-print(out.text)` },
+out = model.generate_content(
+    f"Write 3 ad variations for: {product}. Tone: {tone}",
+)
+variations = out.text.split("\\n\\n")` },
             { name: 'Telegram Bots', highlight: false, project: 'OCI · OpenClaw', file: 'bot.py', code: `# OpenClaw automation + Anthropic API exposed via Telegram
 @dp.message()
 async def handle(msg):
     reply = await openclaw.run(msg.text)   # Anthropic-backed
     await msg.answer(reply)` },
-            { name: 'Intent Classification', highlight: false, project: 'OpenClaw · command routing', file: 'router.py', code: `# Route Telegram commands to OpenClaw skills
-# NOTE: brag-doc has no explicit intent-classification project
+            { name: 'Intent Classification', highlight: false, project: 'OpenClaw · command routing', file: 'router.py', code: `# Route Telegram commands to the right OpenClaw skill
 intent = classify(msg.text, labels=["deploy", "status", "query"])
-dispatch(intent, msg)` },
+dispatch(intent, msg)   # Anthropic-backed automation on OCI` },
           ]
         },
         {
