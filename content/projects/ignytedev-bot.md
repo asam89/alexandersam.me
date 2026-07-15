@@ -1,5 +1,6 @@
 ---
 id: 5
+date: '2026-06-08'
 title: IgnyteDev Bot
 description: Telegram bot on OCI that uses Gemini 2.5 Flash to generate code, push branches to GitHub, open PRs, and deploy via GitHub Actions to Vercel.
 image: /images/projects/ignytedev-bot.png

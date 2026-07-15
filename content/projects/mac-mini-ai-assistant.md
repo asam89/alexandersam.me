@@ -1,5 +1,6 @@
 ---
 id: 4
+date: '2026-03-12'
 title: Mac Mini AI Assistant
 description: Telegram bot running on Mac Mini M4 with local Ollama LLM for intent routing, integrating Google Calendar, Microsoft To Do, and Obsidian.
 image: /images/projects/mac-mini-assistant.png

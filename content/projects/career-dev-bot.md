@@ -1,5 +1,6 @@
 ---
 id: 14
+date: '2024-09-01'
 title: MyCareer Bot
 description: AI-driven career automation platform that analyzes job descriptions, tailors resumes, generates cover letters, and tracks applications through the pipeline.
 image: /images/projects/mac-mini-assistant.png

@@ -1,5 +1,6 @@
 ---
 id: 2
+date: '2019-06-01'
 title: Enterprise Cloud Migration
 description: Led multi-year initiatives moving workloads from on-prem to Azure, improving resilience and security for financial institutions.
 image: /images/projects/enterprise-cloud-migration.png

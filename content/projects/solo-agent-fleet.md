@@ -1,5 +1,6 @@
 ---
 id: 13
+date: '2026-06-06'
 title: Solo Agent Fleet
 description: A fleet of autonomous AI agents handling different domains — career, marketing, finance, and presence — orchestrated from a single control plane.
 image: /images/projects/mac-mini-assistant.png

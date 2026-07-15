@@ -1,5 +1,6 @@
 ---
 id: 11
+date: '2026-02-23'
 title: Daily Briefing Platform
 description: Real-time intelligence platform delivering global markets, crypto, politics, and world news via Telegram. Deployed on OCI with worker nodes.
 image: /images/projects/mac-mini-assistant.png
