@@ -53,6 +53,8 @@ export default {
       { name: 'BMO Financial Group', src: '/images/bmo-logo.png', url: 'https://bmo.com' },
       { name: 'Publicis Groupe', src: '/images/publicis-logo.png', url: 'https://publicisgroupe.com' },
       { name: 'Syntax', src: '/images/syntax-logo.png', url: 'https://syntax.com' },
+      { name: 'InfoSec Global', src: '/images/infosec-logo.png', url: 'https://www.keyfactor.com/infosecglobal/' },
+      { name: 'Isaac Operations', src: '/images/isaac-logo.png', url: 'https://isaacteam.com/' },
     ]
   },
   recommendations: {
