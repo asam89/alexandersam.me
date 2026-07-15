@@ -1,5 +1,6 @@
 ---
 id: 7
+date: '2024-03-01'
 title: FaezSports Leagues Platform
 description: Multi-tenant sports management SaaS for leagues, tournaments, registrations, and real-time game statistics. Built with Next.js, Prisma, and PostgreSQL.
 image: /images/projects/faezsports.png

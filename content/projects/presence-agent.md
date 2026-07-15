@@ -1,5 +1,6 @@
 ---
 id: 12
+date: '2026-06-06'
 title: Presence Agent
 description: Autonomous GitHub commit agent that reads context, generates daily build logs, and commits 3x/day via Claude API on OCI Ampere.
 image: /images/projects/ignytedev-bot.png

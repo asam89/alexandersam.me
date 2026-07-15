@@ -73,11 +73,18 @@ export default {
     console.time(fetchDocsLabel)
     const projects = await $content('projects')
       .without(['body', 'toc'])
-      .sortBy('id', 'asc')
       .fetch()
     console.timeEnd(fetchDocsLabel)
+    // Latest first: sort by `date` desc, falling back to `id` when missing.
+    const list = Array.isArray(projects) ? projects : [projects]
+    list.sort((a, b) => {
+      const da = a.date ? new Date(a.date).getTime() : 0
+      const db = b.date ? new Date(b.date).getTime() : 0
+      if (db !== da) return db - da
+      return (b.id || 0) - (a.id || 0)
+    })
     return {
-      projects
+      projects: list
     }
   }
 }

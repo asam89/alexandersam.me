@@ -1,5 +1,6 @@
 ---
 id: 10
+date: '2026-06-09'
 title: Mark-It
 description: Autonomous marketing tool for SMBs — generates content, manages campaigns, and tracks analytics using AI agents.
 image: /images/projects/ignytedev-bot.png

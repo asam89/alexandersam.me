@@ -1,5 +1,6 @@
 ---
 id: 1
+date: '2023-05-01'
 title: Azure Data Migration
 description: Migrated legacy student information system data to Azure denormalized tables with event-driven architecture for SaaS enablement.
 image: /images/projects/azure-data-migration.png

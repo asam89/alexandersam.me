@@ -1,5 +1,6 @@
 ---
 id: 9
+date: '2020-01-01'
 title: Ignyte Consulting
 description: Managed Service Provider (MSP) offering cloud infrastructure, DevOps automation, and IT consulting for small-to-medium businesses.
 image: /images/projects/enterprise-cloud-migration.png

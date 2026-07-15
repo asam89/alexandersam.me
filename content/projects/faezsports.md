@@ -1,5 +1,6 @@
 ---
 id: 6
+date: '2024-01-15'
 title: FaezSports
 description: Founded and operate a community sports organization in Scarborough serving 100+ youth across basketball, volleyball, and soccer with charity campaigns.
 image: /images/projects/faezsports.png

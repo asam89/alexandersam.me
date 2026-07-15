@@ -1,5 +1,6 @@
 ---
 id: 3
+date: '2018-06-01'
 title: SAP ERP to Azure
 description: Oversaw a multi-year SAP ERP implementation and migration, delivering infrastructure modernization and high availability.
 image: /images/projects/sap-erp-azure.png

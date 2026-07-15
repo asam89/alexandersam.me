@@ -17,6 +17,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile --ignore-engines
 
+      - name: Sync latest projects from GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/sync-github-projects.mjs
+
       - name: Generate static site
         run: yarn generate
 
