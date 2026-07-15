@@ -13,48 +13,31 @@
             <span
               v-for="(skill, sIndex) in category.items"
               :key="sIndex"
-              class="skill-chip relative inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border cursor-help"
+              class="skill-chip inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border cursor-help"
               :class="skill.highlight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-gray-50 text-gray-700 border-gray-200'"
               @mouseenter="openSnippet(index, sIndex)"
-              @click="openSnippet(index, sIndex)"
+              @mouseleave="closeSnippet"
             >
               {{ skill.name }}
               <span v-if="skill.code" class="ml-1.5 text-[10px] opacity-40">&lt;/&gt;</span>
+
+              <transition name="term-fade">
+                <span v-if="isActive(index, sIndex)" class="skill-term" @mouseenter="openSnippet(index, sIndex)">
+                  <span class="skill-term__bar">
+                    <span class="skill-term__dot" style="background:#ff5f56"></span>
+                    <span class="skill-term__dot" style="background:#ffbd2e"></span>
+                    <span class="skill-term__dot" style="background:#27c93f"></span>
+                    <span class="skill-term__file">{{ skill.file }}</span>
+                  </span>
+                  <span class="skill-term__meta">{{ skill.project }}</span>
+                  <pre class="skill-term__code"><code>{{ skill.code }}</code></pre>
+                </span>
+              </transition>
             </span>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Code snippet popover -->
-    <transition name="fade">
-      <div
-        v-if="active"
-        class="code-modal-overlay"
-        @click="closeSnippet"
-      >
-        <div class="code-modal bg-gray-900 rounded-xl shadow-2xl overflow-hidden border border-gray-700" @click.stop>
-          <div class="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
-            <div class="flex items-center space-x-3">
-              <div class="flex space-x-1.5">
-                <span class="w-3 h-3 rounded-full bg-red-500"></span>
-                <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
-                <span class="w-3 h-3 rounded-full bg-green-500"></span>
-              </div>
-              <span class="text-gray-400 text-xs font-mono">{{ active.file }}</span>
-            </div>
-            <button class="text-gray-500 hover:text-white text-lg leading-none" @click="closeSnippet">&times;</button>
-          </div>
-          <div class="px-5 py-4">
-            <div class="flex items-center justify-between mb-3">
-              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">{{ active.name }}</span>
-              <span class="text-gray-400 text-xs">{{ active.project }}</span>
-            </div>
-            <pre class="text-xs sm:text-sm text-gray-200 font-mono overflow-x-auto leading-relaxed"><code>{{ active.code }}</code></pre>
-          </div>
-        </div>
-      </div>
-    </transition>
   </div>
 </template>
 
@@ -339,15 +322,10 @@ ORDER BY priority DESC, updated ASC` },
       ]
     }
   },
-  computed: {
-    active() {
-      if (!this.activeKey) return null
-      const [c, s] = this.activeKey
-      const skill = this.skills[c].items[s]
-      return skill && skill.code ? skill : null
-    }
-  },
   methods: {
+    isActive(c, s) {
+      return !!this.activeKey && this.activeKey[0] === c && this.activeKey[1] === s
+    },
     openSnippet(c, s) {
       const skill = this.skills[c].items[s]
       if (skill && skill.code) this.activeKey = [c, s]
@@ -360,24 +338,70 @@ ORDER BY priority DESC, updated ASC` },
 </script>
 
 <style scoped>
-.code-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
+.skill-chip {
+  position: relative;
+}
+.skill-term {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  display: block;
+  width: 340px;
+  max-width: 78vw;
+  background: #0d1117;
+  border: 1px solid #1f2937;
+  border-radius: 0.5rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  text-align: left;
+  cursor: default;
+}
+.skill-term__bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.6);
+  gap: 6px;
+  padding: 7px 10px;
+  background: #161b22;
+  border-bottom: 1px solid #1f2937;
 }
-.code-modal {
-  max-width: 42rem;
-  width: 100%;
+.skill-term__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  display: inline-block;
 }
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.15s ease;
+.skill-term__file {
+  margin-left: 6px;
+  color: #8b949e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
 }
-.fade-enter, .fade-leave-to {
+.skill-term__meta {
+  display: block;
+  padding: 8px 12px 0;
+  color: #6e7681;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.skill-term__code {
+  margin: 0;
+  padding: 6px 12px 12px;
+  color: #3ddc84;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1.55;
+  white-space: pre;
+  overflow-x: auto;
+  text-shadow: 0 0 6px rgba(61, 220, 132, 0.25);
+}
+.term-fade-enter-active, .term-fade-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.term-fade-enter, .term-fade-leave-to {
   opacity: 0;
+  transform: translateY(-4px);
 }
 </style>
