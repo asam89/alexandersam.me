@@ -10,7 +10,7 @@
 
       <div v-else class="overflow-x-auto">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm text-gray-400">{{ totalContributions }} contributions in the last year</span>
+          <span class="text-sm text-gray-400">{{ totalContributions }} contributions in the last 3 months</span>
           <a :href="`https://github.com/${$config.social.github}`" target="_blank" rel="noreferrer" class="text-xs text-gray-500 hover:text-indigo-500">@{{ $config.social.github }}</a>
         </div>
 
@@ -51,8 +51,9 @@ export default {
     try {
       const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${this.$config.social.github}?y=last`)
       const data = await res.json()
-      this.processContributions(data.contributions)
-      this.totalContributions = data.total?.lastYear || data.contributions.reduce((sum, d) => sum + d.count, 0)
+      const recent = this.lastThreeMonths(data.contributions)
+      this.processContributions(recent)
+      this.totalContributions = recent.reduce((sum, d) => sum + d.count, 0)
     } catch (e) {
       console.error('Failed to load GitHub calendar:', e)
     } finally {
@@ -60,6 +61,12 @@ export default {
     }
   },
   methods: {
+    lastThreeMonths(contributions) {
+      const cutoff = new Date()
+      cutoff.setMonth(cutoff.getMonth() - 3)
+      cutoff.setHours(0, 0, 0, 0)
+      return contributions.filter(d => new Date(d.date) >= cutoff)
+    },
     processContributions(contributions) {
       const weeks = []
       let currentWeek = []
