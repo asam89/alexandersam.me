@@ -3,6 +3,7 @@ name: Deploy to Hostinger
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -26,6 +27,8 @@ jobs:
         run: yarn generate
 
       - name: Deploy to Hostinger via FTP
+        id: deploy1
+        continue-on-error: true
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -33,4 +36,20 @@ jobs:
           password: ${{ secrets.FTP_PASS }}
           local-dir: ./dist/
           server-dir: /domains/alexandersam.me/public_html/
-          timeout: 60000
+          timeout: 120000
+
+      # Hostinger's FTP endpoint intermittently times out on connect; retry.
+      - name: Wait before retry
+        if: steps.deploy1.outcome == 'failure'
+        run: sleep 30
+
+      - name: Deploy to Hostinger via FTP (retry)
+        if: steps.deploy1.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          local-dir: ./dist/
+          server-dir: /domains/alexandersam.me/public_html/
+          timeout: 120000
