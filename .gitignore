@@ -94,3 +94,6 @@ static/sw.*
 .awspublish-karngyan.com
 
 .env
+
+# CMS OAuth credentials (written by CI)
+static/auth/config.php

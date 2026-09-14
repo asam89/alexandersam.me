@@ -26,6 +26,22 @@ jobs:
       - name: Generate static site
         run: yarn generate
 
+      - name: Write CMS OAuth credentials
+        env:
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+        run: |
+          if [ -z "$GH_OAUTH_CLIENT_ID" ] || [ -z "$GH_OAUTH_CLIENT_SECRET" ]; then
+            echo "::warning::GH_OAUTH_CLIENT_ID / GH_OAUTH_CLIENT_SECRET not set; /admin login will not work"
+            exit 0
+          fi
+          node - <<'EOF'
+          const fs = require('fs');
+          const q = (s) => "'" + s.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+          fs.writeFileSync('dist/auth/config.php',
+            `<?php\nreturn [\n  'client_id' => ${q(process.env.GH_OAUTH_CLIENT_ID)},\n  'client_secret' => ${q(process.env.GH_OAUTH_CLIENT_SECRET)},\n];\n`);
+          EOF
+
       - name: Deploy to Hostinger via FTP
         id: deploy1
         continue-on-error: true
