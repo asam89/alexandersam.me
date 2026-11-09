@@ -7,6 +7,21 @@
       <p class="mt-2 px-2 max-w-2xl mx-auto text-sm leading-7 text-gray-400">
         {{ $t('blog.subtext') }}
       </p>
+      <div class="mt-4 flex flex-wrap items-center justify-center gap-2 px-4 text-xs">
+        <a v-for="blog in $config.crossPost.externalBlogs" :key="blog.id" :href="blog.url" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1 rounded-full border border-gray-700 px-3 py-1 text-gray-300 hover:border-indigo-500 hover:text-white">
+          Also writing at {{ blog.name }} <span aria-hidden="true">↗</span>
+        </a>
+        <a :href="$config.crossPost.linkedinProfile" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1 rounded-full border border-gray-700 px-3 py-1 text-gray-300 hover:border-indigo-500 hover:text-white">
+          Follow on LinkedIn <span aria-hidden="true">↗</span>
+        </a>
+        <a v-if="$config.crossPost.linkedinCompany" :href="$config.crossPost.linkedinCompany" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1 rounded-full border border-gray-700 px-3 py-1 text-gray-300 hover:border-indigo-500 hover:text-white">
+          Ignyte on LinkedIn <span aria-hidden="true">↗</span>
+        </a>
+        <a href="/feed.xml" class="inline-flex items-center gap-1 rounded-full border border-gray-700 px-3 py-1 text-gray-300 hover:border-indigo-500 hover:text-white">RSS</a>
+      </div>
     </div>
 
     <div data-aos="zoom-in" class="select-none px-4 items-center justify-center sm:justify-start overflow-hidden flex pt-4">
@@ -18,7 +33,10 @@
     </div>
 
     <div data-aos="zoom-in" class="mt-5 gap-4 mx-4 grid max-w-none lg:grid-cols-3">
-      <BlogCard v-for="post in postsByCategories" :key="post.slug" :post="post" />
+      <template v-for="post in postsByCategories">
+        <ExternalPostCard v-if="post.external" :key="post.url" :post="post" />
+        <BlogCard v-else :key="post.slug" :post="post" />
+      </template>
     </div>
 
   </div>
@@ -57,8 +75,14 @@ export default {
       .without(['body', 'toc', 'dir', 'extension', 'path', 'tags'])
       .sortBy('createdAt', 'desc')
       .fetch()
+    // Posts from other blogs (scripts/sync-external-posts.mjs); the folder may be empty.
+    const external = await $content('external').fetch().catch(() => [])
+    const all = [
+      ...posts,
+      ...(Array.isArray(external) ? external : [external]).map(p => ({ ...p, category: p.source, createdAt: p.date })),
+    ].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     console.timeEnd(fetchDocsLabel)
-    return { posts }
+    return { posts: all }
   }
 }
 </script>

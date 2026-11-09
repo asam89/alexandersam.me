@@ -31,8 +31,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/sync-github-projects.mjs
 
+      - name: Sync posts from other blogs (Ignyte Consulting)
+        run: node scripts/sync-external-posts.mjs
+
       - name: Generate static site
         run: yarn generate
+
+      - name: Find newly published posts (for LinkedIn)
+        run: node scripts/linkedin-announce.mjs detect
 
       - name: Write CMS OAuth credentials
         env:
@@ -68,6 +74,7 @@ jobs:
         run: sleep 30
 
       - name: Deploy to Hostinger via FTP (retry)
+        id: deploy2
         if: steps.deploy1.outcome == 'failure'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -77,3 +84,12 @@ jobs:
           local-dir: ./dist/
           server-dir: /domains/alexandersam.me/public_html/
           timeout: 120000
+
+      - name: Announce new posts on LinkedIn
+        if: steps.deploy1.outcome == 'success' || steps.deploy2.outcome == 'success'
+        continue-on-error: true
+        env:
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_AUTHOR_URNS: ${{ vars.LINKEDIN_AUTHOR_URNS }}
+          LINKEDIN_API_VERSION: ${{ vars.LINKEDIN_API_VERSION }}
+        run: node scripts/linkedin-announce.mjs post

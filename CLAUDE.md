@@ -32,6 +32,8 @@ Guidance for Claude (and other agents) working on **alexandersam.me**, Alex Sam'
 | `static/admin/` | Decap CMS (`/admin`) config |
 | `static/auth/` | PHP OAuth proxy for Decap CMS GitHub login |
 | `scripts/sync-github-projects.mjs` | CI step that turns public `asam89` repos into `content/projects/gh-*.md` |
+| `scripts/sync-external-posts.mjs` | CI step: pulls posts from other blogs (Ignyte) into `content/external/*.json` (gitignored) |
+| `scripts/linkedin-announce.mjs` | CI step: shares newly published posts on LinkedIn |
 | `scripts/blog/` | Claude-powered blog drafter (own `package.json`, separate from the site's yarn deps) |
 | `.github/workflows/deploy.yml` | Build + deploy (on push to `main`, daily schedule, manual) |
 | `.github/workflows/blog-draft.yml` | Drafts a blog post with Claude and opens a PR |
@@ -49,8 +51,12 @@ The deploy workflow reads these from **Settings → Secrets and variables → Ac
 | `GH_OAUTH_CLIENT_ID` | Writes `dist/auth/config.php` for `/admin` login | ❌ **not set**: CI warns "/admin login will not work" |
 | `GH_OAUTH_CLIENT_SECRET` | Same as above | ❌ **not set** |
 | `ANTHROPIC_API_KEY` | `blog-draft.yml` (AI blog drafts) | ❌ **needs adding**: without it the draft workflow warns and does nothing |
+| `LINKEDIN_ACCESS_TOKEN` | `deploy.yml` → auto-share new posts on LinkedIn | ❌ **optional**: without it new posts aren't announced (warning only). LinkedIn tokens expire after **60 days** |
 
-Optional repository **variable** (not secret): `BLOG_DRAFT_MODEL` overrides the drafting model (default `claude-opus-5-5`).
+Repository **variables** (Settings → Secrets and variables → Actions → *Variables*):
+- `LINKEDIN_AUTHOR_URNS`: comma-separated authors to post as, e.g. `urn:li:person:AbC123,urn:li:organization:12345678`. Person posts need the `w_member_social` scope; company-page posts need `w_organization_social` and an admin of the page.
+- `LINKEDIN_API_VERSION`: optional `YYYYMM` LinkedIn-Version header (script default `202610`). Bump it if LinkedIn says the version is sunset.
+- `BLOG_DRAFT_MODEL` overrides the drafting model (default `claude-opus-5-5`).
 
 The draft workflow opens PRs with `GITHUB_TOKEN`, which requires **Settings → Actions → General → Workflow permissions → "Allow GitHub Actions to create and approve pull requests"**.
 
@@ -63,12 +69,13 @@ Rules for agents:
 
 ## Deploy workflow details (`deploy.yml`)
 
-Triggers: `push` to `main`, `workflow_dispatch`, and a daily `schedule` (10:17 UTC). The daily run re-syncs GitHub projects and publishes any post whose `date` has arrived. A `concurrency` group stops two FTP deploys from overlapping. Steps:
+Triggers: `push` to `main`, `workflow_dispatch`, and a daily `schedule` (10:17 UTC). Besides the build, it pulls external blog posts before `yarn generate`, and after a successful upload it shares newly published posts on LinkedIn (see *Cross-linking*). The daily run re-syncs GitHub projects and publishes any post whose `date` has arrived. A `concurrency` group stops two FTP deploys from overlapping. Steps:
 1. Checkout, set up Node 18 with the yarn cache, `yarn install --frozen-lockfile --ignore-engines`
 2. `node scripts/sync-github-projects.mjs`: regenerates `content/projects/gh-*.md` from public, non-fork, non-archived `asam89` repos. On an API failure it exits 0 and keeps the existing files.
 3. `yarn generate` → `dist/`
 4. Write `dist/auth/config.php` from the OAuth secrets (skipped with a warning if they're missing)
 5. FTP-sync `dist/` → `/domains/alexandersam.me/public_html/` with `SamKirkland/FTP-Deploy-Action@v4.3.5`, then one retry after 30s, because Hostinger's FTP sometimes times out
+6. Share newly published posts on LinkedIn (only after a successful upload; skipped with a warning without the LinkedIn secret)
 
 Notes:
 - FTP-Deploy keeps a `.ftp-deploy-sync-state.json` on the server and uploads only diffs. Files you delete from `dist/` are deleted from the server.
@@ -107,6 +114,13 @@ Two ways to start one:
 `scripts/blog/draft-post.mjs` sends the topic and notes, plus context from the site (config, experience, certifications, project frontmatter, an existing post for voice), to the Claude API with structured JSON output. It then writes `content/posts/<slug>.md`, pushes a `blog/<slug>-<run>` branch and opens a PR (labelled-issue runs comment the PR link on the issue and close it on merge). The prompt forbids inventing facts about Alex and leaves `<!-- TODO(alex): ... -->` comments where real details are needed. **Always review and resolve those before merging.** Server-side refusal fallback (`fallbacks: "default"`) is on.
 
 To run it locally: `npm install --prefix scripts/blog`, then `TOPIC="..." NOTES="..." ANTHROPIC_API_KEY=... node scripts/blog/draft-post.mjs`.
+
+### Cross-linking: Ignyte blog, alexandersam.me and LinkedIn
+Configured in `karngyan.config.js` → `crossPost` (`linkedinProfile`, `linkedinCompany`, `externalBlogs`).
+- **Ignyte posts on /blog**: `scripts/sync-external-posts.mjs` reads each `externalBlogs[]` RSS/Atom feed (`feed`, or auto-discovered from `<link rel="alternate">` on `url`). It writes up to 12 posts to `content/external/<id>-<slug>.json`, which `/blog` merges by date as outbound cards (`components/blog/ExternalPostCard.vue`). If no feed is found, it logs and skips. **As of this change the Ignyte site's feed URL is unknown**, so set `feed:` once the Ignyte site has one.
+- **alexandersam.me posts on Ignyte**: the Ignyte site (a separate repo) can read `https://alexandersam.me/feed.xml`. The feed now has dates, authors and tags, and is advertised with `<link rel="alternate">`.
+- **LinkedIn**: posts get a "Share on LinkedIn" button, author links go to the LinkedIn profile, and a closing CTA links LinkedIn and the Ignyte blog. Optional frontmatter: `linkedinUrl:` (adds "Discuss on LinkedIn") and `canonical:` (when a post was published elsewhere first).
+- **Auto-announce**: `linkedin-announce.mjs detect` diffs the built `dist/feed.xml` against the live `/feed.xml` before upload, and `post` shares only the new items after the upload succeeds. If the live feed can't be read, nothing is posted, so old posts are never re-announced. A scheduled post is announced on the morning it goes live.
 
 ### Project: `content/projects/<slug>.md` → `/projects/<slug>`
 

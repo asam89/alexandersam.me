@@ -97,3 +97,7 @@ static/sw.*
 
 # CMS OAuth credentials (written by CI)
 static/auth/config.php
+
+# Generated at build time
+content/external/*.json
+.linkedin-new-posts.json
