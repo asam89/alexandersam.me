@@ -51,7 +51,6 @@ The deploy workflow reads these from **Settings → Secrets and variables → Ac
 | `GH_OAUTH_CLIENT_ID` | Writes `dist/auth/config.php` for `/admin` login | ❌ **not set**: CI warns "/admin login will not work" |
 | `GH_OAUTH_CLIENT_SECRET` | Same as above | ❌ **not set** |
 | `ANTHROPIC_API_KEY` | `blog-draft.yml` (AI blog drafts) | ❌ **needs adding**: without it the draft workflow warns and does nothing |
-
 | `LINKEDIN_ACCESS_TOKEN` | `deploy.yml` → auto-share new posts on LinkedIn | ❌ **optional**: without it new posts aren't announced (warning only). LinkedIn tokens expire after **60 days** |
 
 Repository **variables** (Settings → Secrets and variables → Actions → *Variables*):
@@ -76,6 +75,7 @@ Triggers: `push` to `main`, `workflow_dispatch`, and a daily `schedule` (10:17 U
 3. `yarn generate` → `dist/`
 4. Write `dist/auth/config.php` from the OAuth secrets (skipped with a warning if they're missing)
 5. FTP-sync `dist/` → `/domains/alexandersam.me/public_html/` with `SamKirkland/FTP-Deploy-Action@v4.3.5`, then one retry after 30s, because Hostinger's FTP sometimes times out
+6. Share newly published posts on LinkedIn (only after a successful upload; skipped with a warning without the LinkedIn secret)
 
 Notes:
 - FTP-Deploy keeps a `.ftp-deploy-sync-state.json` on the server and uploads only diffs. Files you delete from `dist/` are deleted from the server.
