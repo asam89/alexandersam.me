@@ -3,7 +3,7 @@ import config from './karngyan.config'
 const createSitemapRoutes = async () => {
   let routes = [];
   const { $content } = require('@nuxt/content')
-  const articles = await $content('posts').fetch();
+  const articles = await $content('posts').where({ published: true }).fetch();
 
   if (config.blog.enabled) {
     for (const article of articles) {
@@ -39,7 +39,7 @@ const create = async (feed) => {
     link: `${hostname}/feed.xml`
   }
   const { $content } = require('@nuxt/content')
-  const posts = await $content('posts').fetch();
+  const posts = await $content('posts').where({ published: true }).sortBy('createdAt', 'desc').fetch();
   for (const post of posts) {
     const feedItem = await constructFeedItem(post, hostname);
     feed.addItem(feedItem);
@@ -214,6 +214,14 @@ const nuxtConfig = {
         document.bodyPlainText = document.text;
         const { text } = require('reading-time')(document.text)
         document.readingTime = text
+      }
+      if (document.dir === '/posts') {
+        // Use the frontmatter `date` as the post date (file timestamps are
+        // meaningless in CI), and hide drafts / future-dated posts until a
+        // build runs on or after that date (deploy.yml rebuilds daily).
+        const date = document.date ? new Date(document.date) : null
+        if (date && !isNaN(date)) document.createdAt = date
+        document.published = document.draft !== true && (!date || isNaN(date) || date <= new Date())
       }
     }
   }

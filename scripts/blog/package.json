@@ -1,0 +1,9 @@
+{
+  "name": "alexandersam-blog-drafter",
+  "private": true,
+  "type": "module",
+  "description": "Drafts blog posts with Claude for the blog-draft GitHub Actions workflow. Kept separate from the site's yarn dependencies.",
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.6.0"
+  }
+}

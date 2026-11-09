@@ -53,6 +53,7 @@ export default {
     const fetchDocsLabel = 'fetchAllPosts'
     console.time(fetchDocsLabel)
     const posts = await $content('posts')
+      .where({ published: true })
       .without(['body', 'toc', 'dir', 'extension', 'path', 'tags'])
       .sortBy('createdAt', 'desc')
       .fetch()
