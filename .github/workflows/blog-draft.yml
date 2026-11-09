@@ -1,0 +1,112 @@
+name: Draft blog post with Claude
+
+# Two ways to start a draft:
+#   1. Actions tab -> "Draft blog post with Claude" -> Run workflow (topic + notes)
+#   2. Open an issue (title = topic, body = notes) and add the `blog` label
+# Either way the workflow writes content/posts/<slug>.md on a new branch and
+# opens a PR. Review/edit the PR, then merge it - merging deploys the site.
+
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: 'What should the post be about?'
+        required: true
+        type: string
+      notes:
+        description: 'Facts, bullet points, links or an outline to ground the post (optional)'
+        required: false
+        type: string
+      publish_date:
+        description: 'YYYY-MM-DD. Future dates stay hidden until that day (default: today)'
+        required: false
+        type: string
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: blog-draft-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'blog'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for ANTHROPIC_API_KEY
+        id: key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::warning::ANTHROPIC_API_KEY secret is not set; add it under Settings -> Secrets and variables -> Actions to enable AI blog drafts."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.key.outputs.ok == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.key.outputs.ok == 'true'
+        with:
+          node-version: '22'
+
+      - name: Install drafter dependencies
+        if: steps.key.outputs.ok == 'true'
+        run: npm install --prefix scripts/blog --no-audit --no-fund --no-package-lock
+
+      - name: Draft post
+        id: draft
+        if: steps.key.outputs.ok == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Passed via env (never interpolated into the script) so issue text can't inject shell.
+          TOPIC: ${{ github.event_name == 'issues' && github.event.issue.title || inputs.topic }}
+          NOTES: ${{ github.event_name == 'issues' && github.event.issue.body || inputs.notes }}
+          PUBLISH_DATE: ${{ inputs.publish_date }}
+          DRAFT_MODEL: ${{ vars.BLOG_DRAFT_MODEL }}
+        run: node scripts/blog/draft-post.mjs
+
+      - name: Open pull request
+        if: steps.key.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLUG: ${{ steps.draft.outputs.slug }}
+          TITLE: ${{ steps.draft.outputs.title }}
+          FILE: ${{ steps.draft.outputs.file }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          branch="blog/${SLUG}-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add "$FILE"
+          git commit -m "content: draft blog post \"${TITLE}\""
+          git push -u origin "$branch"
+
+          closes=""
+          if [ -n "$ISSUE" ]; then closes="Closes #${ISSUE}"; fi
+          body=$(printf '%s\n' \
+            "AI-drafted post: \`${FILE}\`" \
+            "" \
+            "**Before merging:**" \
+            "- [ ] Read it end to end and fix anything inaccurate" \
+            "- [ ] Resolve every \`TODO(alex)\` comment" \
+            "- [ ] Check the \`date\` (future dates stay hidden until that day)" \
+            "" \
+            "Merging to \`main\` deploys the site." \
+            "" \
+            "${closes}")
+          url=$(gh pr create --base main --head "$branch" --title "Blog draft: ${TITLE}" --body "$body")
+          echo "Opened $url"
+          echo "### Draft ready: $url" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$ISSUE" ]; then
+            gh issue comment "$ISSUE" --body "Draft is ready for review: $url"
+          fi

@@ -32,7 +32,9 @@ Guidance for Claude (and other agents) working on **alexandersam.me**, Alex Sam'
 | `static/admin/` | Decap CMS (`/admin`) config |
 | `static/auth/` | PHP OAuth proxy for Decap CMS GitHub login |
 | `scripts/sync-github-projects.mjs` | CI step that turns public `asam89` repos into `content/projects/gh-*.md` |
-| `.github/workflows/deploy.yml` | The only workflow: build + deploy |
+| `scripts/blog/` | Claude-powered blog drafter (own `package.json`, separate from the site's yarn deps) |
+| `.github/workflows/deploy.yml` | Build + deploy (on push to `main`, daily schedule, manual) |
+| `.github/workflows/blog-draft.yml` | Drafts a blog post with Claude and opens a PR |
 
 ## GitHub Actions secrets
 
@@ -46,6 +48,11 @@ The deploy workflow reads these from **Settings → Secrets and variables → Ac
 | `GITHUB_TOKEN` | Project sync script (higher GitHub API rate limit) | ✅ provided automatically by Actions |
 | `GH_OAUTH_CLIENT_ID` | Writes `dist/auth/config.php` for `/admin` login | ❌ **not set**: CI warns "/admin login will not work" |
 | `GH_OAUTH_CLIENT_SECRET` | Same as above | ❌ **not set** |
+| `ANTHROPIC_API_KEY` | `blog-draft.yml` (AI blog drafts) | ❌ **needs adding**: without it the draft workflow warns and does nothing |
+
+Optional repository **variable** (not secret): `BLOG_DRAFT_MODEL` overrides the drafting model (default `claude-opus-5-5`).
+
+The draft workflow opens PRs with `GITHUB_TOKEN`, which requires **Settings → Actions → General → Workflow permissions → "Allow GitHub Actions to create and approve pull requests"**.
 
 To turn on the `/admin` CMS login: create a GitHub OAuth App with callback URL `https://alexandersam.me/auth/callback.php`, add both `GH_OAUTH_*` secrets, then re-run the workflow. Nothing else depends on them: the site builds and deploys fine without them.
 
@@ -56,7 +63,7 @@ Rules for agents:
 
 ## Deploy workflow details (`deploy.yml`)
 
-Triggers: `push` to `main` and `workflow_dispatch`. Steps:
+Triggers: `push` to `main`, `workflow_dispatch`, and a daily `schedule` (10:17 UTC). The daily run re-syncs GitHub projects and publishes any post whose `date` has arrived. A `concurrency` group stops two FTP deploys from overlapping. Steps:
 1. Checkout, set up Node 18 with the yarn cache, `yarn install --frozen-lockfile --ignore-engines`
 2. `node scripts/sync-github-projects.mjs`: regenerates `content/projects/gh-*.md` from public, non-fork, non-archived `asam89` repos. On an API failure it exits 0 and keeps the existing files.
 3. `yarn generate` → `dist/`
@@ -66,6 +73,7 @@ Triggers: `push` to `main` and `workflow_dispatch`. Steps:
 Notes:
 - FTP-Deploy keeps a `.ftp-deploy-sync-state.json` on the server and uploads only diffs. Files you delete from `dist/` are deleted from the server.
 - CI does **not** commit the regenerated `gh-*.md` files back to the repo. The copies in git may be stale; the live site uses whatever CI generated at build time.
+- PRs that `blog-draft.yml` opens with `GITHUB_TOKEN` don't trigger other workflows; that's fine, since nothing runs on PRs. Merging still deploys.
 - PRs don't trigger a build. To check a change, run `yarn generate` locally.
 - Workflow runs and logs: https://github.com/asam89/alexandersam.me/actions
 
@@ -85,7 +93,20 @@ tags: ['ai', 'automation']
 ```
 Then the Markdown body (`##` headings, tables, and fenced code with Prism highlighting all work).
 
-⚠️ The blog list and the homepage sort by `createdAt` (Nuxt Content's file timestamp, which in CI is the checkout time), not by `date`. Today's single post sorts fine, but ordering between several posts isn't reliable until `pages/blog/index.vue` and `pages/index.vue` sort by `date`.
+How the post date and visibility work (the `content:file:beforeInsert` hook in `nuxt.config.js`):
+- `date` overrides `createdAt`, so lists, the RSS feed and the post page all sort and display by the frontmatter date. File timestamps are meaningless in CI.
+- `published` is computed **at build time**: `false` if `draft: true` or `date` is in the future. Unpublished posts are left out of `/blog`, the homepage, `feed.xml` and `sitemap.xml`, and `/blog/<slug>` returns a 404. Every query on `posts` must keep `.where({ published: true })`.
+- Scheduling a post: merge it with a future `date`. The daily deploy publishes it that morning.
+- Hidden posts still ship in the client-side content DB JSON, so treat them as unlisted, not secret.
+
+### Automated blog drafts (`blog-draft.yml`)
+Two ways to start one:
+1. **Actions → "Draft blog post with Claude" → Run workflow**, with `topic`, optional `notes`, and an optional `publish_date`.
+2. **Open an issue** (title = topic, body = notes/outline) and add the **`blog`** label. This works well from the GitHub mobile app.
+
+`scripts/blog/draft-post.mjs` sends the topic and notes, plus context from the site (config, experience, certifications, project frontmatter, an existing post for voice), to the Claude API with structured JSON output. It then writes `content/posts/<slug>.md`, pushes a `blog/<slug>-<run>` branch and opens a PR (labelled-issue runs comment the PR link on the issue and close it on merge). The prompt forbids inventing facts about Alex and leaves `<!-- TODO(alex): ... -->` comments where real details are needed. **Always review and resolve those before merging.** Server-side refusal fallback (`fallbacks: "default"`) is on.
+
+To run it locally: `npm install --prefix scripts/blog`, then `TOPIC="..." NOTES="..." ANTHROPIC_API_KEY=... node scripts/blog/draft-post.mjs`.
 
 ### Project: `content/projects/<slug>.md` → `/projects/<slug>`
 
@@ -127,3 +148,4 @@ There are no tests or linters. A successful `yarn generate` is the check.
 - Work on a feature branch, open a PR to `main`, and merge it (merging deploys).
 - Keep changes small and content-focused. This is a personal site: accuracy about Alex's real experience matters more than flashy copy, so don't invent employers, metrics, or certifications.
 - The README's "Deployment" section (manual upload) is outdated. CI handles deploys.
+- Keep the blog drafter's dependencies in `scripts/blog/package.json`, not the root `package.json`, so the site's `yarn.lock` and its Node 18 build stay untouched.

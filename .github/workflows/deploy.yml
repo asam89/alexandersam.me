@@ -4,6 +4,14 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+  # Daily rebuild keeps the site current without a commit: re-syncs GitHub
+  # projects and publishes any blog post whose `date` has now arrived.
+  schedule:
+    - cron: '17 10 * * *'   # 10:17 UTC (~6am Toronto)
+
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: false
 
 jobs:
   deploy:

@@ -76,8 +76,11 @@
 
 <script>
 export default {
-  async asyncData({ $content, params, route, $config }) {
-    const post = await $content('posts', params.slug).fetch()
+  async asyncData({ $content, params, route, $config, error }) {
+    const post = await $content('posts', params.slug).fetch().catch(() => null)
+    if (!post || !post.published) {
+      return error({ statusCode: 404, message: 'Post not found' })
+    }
     post.twitterShareUrl = `https://twitter.com/intent/tweet?text=${post.title} by @${post.author.twitter}&url=https://${$config.domain}${route.fullPath}`
     return {
       post,

@@ -29,6 +29,7 @@ export default {
     console.time(fetchDocsLabel)
     try {
       const posts = await this.$content('posts')
+        .where({ published: true })
         .without(['body', 'toc', 'dir', 'extension', 'path', 'tags'])
         .limit(3)
         .skip(0)
