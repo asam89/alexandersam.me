@@ -26,8 +26,12 @@ const constructFeedItem = (post, hostname) => {
     title: post.title,
     id: url,
     link: url,
+    date: new Date(post.createdAt),
     description: post.description,
-    content: post.bodyPlainText
+    content: post.bodyPlainText,
+    author: [{ name: post.author.name, link: config.crossPost.linkedinProfile }],
+    category: (post.tags || []).map(name => ({ name })),
+    image: post.image ? `${hostname}${post.image}` : undefined,
   }
 }
 
@@ -83,6 +87,7 @@ const nuxtConfig = {
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      { rel: 'alternate', type: 'application/rss+xml', title: `Blog | ${config.name}`, href: `https://${config.domain}/feed.xml` },
       { rel: 'stylesheet', href: 'https://rsms.me/inter/inter.css'}
     ],
   },
@@ -222,6 +227,15 @@ const nuxtConfig = {
         const date = document.date ? new Date(document.date) : null
         if (date && !isNaN(date)) document.createdAt = date
         document.published = document.draft !== true && (!date || isNaN(date) || date <= new Date())
+        // Frontmatter `author` is a plain name; the templates expect an object.
+        if (!document.author || typeof document.author === 'string') {
+          document.author = {
+            name: document.author || config.name,
+            image: config.image,
+            url: config.crossPost.linkedinProfile,
+          }
+        }
+        if (!document.category) document.category = (document.tags && document.tags[0]) || 'general'
       }
     }
   }

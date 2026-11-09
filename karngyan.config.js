@@ -57,6 +57,17 @@ export default {
       { name: 'Isaac Operations', src: '/images/isaac-logo.png', url: 'https://isaacteam.com/' },
     ]
   },
+  // Cross-linking between this blog, the Ignyte Consulting blog and LinkedIn.
+  crossPost: {
+    linkedinProfile: 'https://www.linkedin.com/in/alexander-s-306575278',
+    // Ignyte's LinkedIn company page, e.g. 'https://www.linkedin.com/company/<slug>' ('' hides it)
+    linkedinCompany: '',
+    // Other blogs to show on /blog. `feed` (RSS/Atom) is optional: when it is empty,
+    // scripts/sync-external-posts.mjs auto-discovers it from <link rel="alternate"> on `url`.
+    externalBlogs: [
+      { id: 'ignyte', name: 'Ignyte Consulting', url: 'https://www.ignyteconsulting.com/blog.php', feed: '' },
+    ],
+  },
   recommendations: {
     enabled: false,
     meta: []
