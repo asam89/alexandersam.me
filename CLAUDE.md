@@ -143,6 +143,8 @@ github: 'https://github.com/asam89/repo'   # optional
 ### Site-wide copy, sections, socials, logos
 Edit `karngyan.config.js`. Section toggles (`blog`, `projects`, `resume`, `uses`, `workedAt`, etc.) and every homepage string live there. Company logos go in `static/images/`.
 
+The homepage hero shows `workedAt` ("worked with", left) and `founded` (logos under the photo, right). A `founded` entry whose `src` file doesn't exist renders as a name tile, so you can add a venture's logo later by dropping the file at that path (currently missing: `static/images/founded/riaya-logo.png`, `static/images/founded/empower-logo.png`). Square images work best.
+
 ### Decap CMS (`/admin`)
 `static/admin/config.yml` commits straight to `main` through the GitHub backend, which also triggers a deploy. Its field schemas (`date` widget, project `image`/`tech`/`link`) roughly match the frontmatter above. If you change the frontmatter conventions, update this file too. Login needs the `GH_OAUTH_*` secrets (not set yet; see above).
 

@@ -22,7 +22,7 @@
                 <p class="mt-3 text-base text-gray-300 sm:mt-5">
                   {{ $t('hero.description') }}
                 </p>
-                <p v-if="$config.workedAt.enabled" class="mt-8 text-sm text-white lowercase tracking-wide font-semibold sm:mt-10">Worked at</p>
+                <p v-if="$config.workedAt.enabled" class="mt-8 text-sm text-white lowercase tracking-wide font-semibold sm:mt-10">Worked with</p>
                 <div v-if="$config.workedAt.enabled" class="mt-5 w-full sm:mx-auto lg:ml-0">
                   <div class="flex flex-wrap gap-3 items-center">
                     <div v-for="(firm, index) in $config.workedAt.meta" :key="index">
@@ -34,10 +34,19 @@
                 </div>
               </div>
             </div>
-            <div class="mt-8 px-5 sm:mt-16 lg:mt-0 lg:col-span-6">
-              <div class="flex-shrink-0 w-full sm:mx-auto flex flex-1 items-center justify-center rounded-lg sm:overflow-hidden">
-                <img class="rounded-md h-80" :src="$config.image" :alt="$config.name">
-              </div>
+            <div class="mt-8 px-5 sm:mt-16 lg:mt-0 lg:col-span-6 lg:pl-10 xl:pl-16 flex flex-col items-center lg:items-start lg:justify-center">
+              <img class="rounded-md h-80" :src="$config.image" :alt="$config.name">
+              <template v-if="$config.founded && $config.founded.enabled">
+                <p class="mt-8 text-sm text-white lowercase tracking-wide font-semibold">Founded</p>
+                <div class="mt-4 flex flex-wrap gap-3 justify-center lg:justify-start">
+                  <a v-for="venture in $config.founded.meta" :key="venture.name" :href="venture.url" target="_blank" rel="noopener"
+                     :title="venture.name" :aria-label="venture.name"
+                     class="block h-14 w-14 sm:h-16 sm:w-16 rounded-lg overflow-hidden bg-white hover:shadow-lg hover:ring-2 hover:ring-indigo-500 transition">
+                    <img v-if="!missing[venture.name]" :src="venture.src" :alt="venture.name" class="h-full w-full object-cover" @error="$set(missing, venture.name, true)">
+                    <span v-else class="h-full w-full flex items-center justify-center bg-indigo-600 px-1 text-center text-[10px] sm:text-xs font-bold leading-tight text-white">{{ venture.name }}</span>
+                  </a>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -50,7 +59,7 @@
 export default {
   data() {
     return {
-
+      missing: {}
     }
   },
   methods: {

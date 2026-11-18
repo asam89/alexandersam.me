@@ -68,6 +68,17 @@ export default {
       { id: 'ignyte', name: 'Ignyte Consulting', url: 'https://www.ignyteconsulting.com/blog.php', feed: '' },
     ],
   },
+  // Ventures shown under the photo on the homepage. Drop a logo at `src` to replace the
+  // name tile (square PNG/SVG works best); until the file exists the name is shown instead.
+  founded: {
+    enabled: true,
+    meta: [
+      { name: 'Ignyte Consulting', src: '/images/ignyte-logo.png', url: 'https://www.ignyteconsulting.com' },
+      { name: 'FaezSports League', src: '/images/projects/faezsports.png', url: 'https://league.faezsports.com' },
+      { name: 'Riaya', src: '/images/founded/riaya-logo.png', url: 'https://riaya.ca' },
+      { name: 'Empower', src: '/images/founded/empower-logo.png', url: 'https://github.com/asam89/empower' },
+    ]
+  },
   recommendations: {
     enabled: false,
     meta: []
